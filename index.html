@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日快乐！我的尼克先生 🦊</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Lucide 图标库 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- 引入 Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap');
+
+        body {
+            font-family: 'YouYuan', 'STYuanti', 'Comic Sans MS', cursive, sans-serif;
+            background-color: #E0BBE4; 
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #2d3748;
+            position: relative;
+        }
+
+        /* 背景图片设置：
+           请确保 'imagine.jpg' (朱迪尼克背景图) 和网页在同一文件夹
+        */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* 背景图文件名 */
+            background-image: url('imagine.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.4; /* 40% 不透明度 */
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+        }
+        
+        .nick-border { border-color: #ffae7f; }
+        .judy-border { border-color: #c0b2e8; }
+
+        .gift-box {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            background: radial-gradient(circle at 30% 30%, #fff9c4, #fff59d);
+        }
+
+        .gift-box:active { transform: scale(0.95); }
+        .gift-box.shaking { animation: shake 0.5s; }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .floating-element {
+            position: absolute;
+            animation: float 8s ease-in-out infinite;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.7;
+            font-size: 28px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        @keyframes float {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        .custom-font-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 2px;
+        }
+
+        h1, h2, h3 { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+
+        /* 照片容器样式 - 拍立得风格 */
+        .photo-container {
+            width: 100%;
+            max-width: 280px; 
+            /* 设置比例以适应拍立得风格 */
+            padding: 12px 12px 50px 12px;
+            background-color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: rotate(-3deg); /* 稍微倾斜一点更可爱 */
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .photo-container:hover {
+            transform: rotate(0deg) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+        }
+
+        .photo-inner {
+            width: 100%;
+            aspect-ratio: 3/4; /* 根据您上传的照片大致比例调整 */
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+
+        .photo-inner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* 这里的文字是写在拍立得下方的 */
+        .photo-caption {
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            text-align: center;
+            left: 0;
+            font-family: 'Ma Shan Zheng', cursive;
+            color: #555;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center justify-start relative">
+
+    <div id="background-container" class="absolute inset-0 overflow-hidden w-full h-full"></div>
+
+    <main class="w-full max-w-lg z-10 flex flex-col gap-5 pb-20 items-center">
+        
+        <header class="text-center mt-8 mb-4 w-full">
+            <div class="inline-flex items-center justify-center bg-white/60 px-4 py-1 rounded-full border-2 border-white/70 mb-2 backdrop-blur-sm shadow-sm">
+                <span class="text-sm font-bold text-blue-800">Zootopia Police Department (ZPD)</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] custom-font-title mb-2">
+                <span class="text-orange-200">生日快乐</span> 🦊
+            </h1>
+            <p class="text-white text-lg font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">致 我最狡猾又迷人的搭档 ❤️</p>
+        </header>
+
+        <!-- 📸 我们的合照区域 -->
+        <div class="photo-container">
+            <div class="photo-inner">
+                <!-- 
+                    🔴 这里引用了您的合照文件名 
+                    请将您的照片重命名为 love.jpg 放在同一文件夹下
+                    或者将下面的 'love.jpg' 改为您照片的原名 '321764631372_.pic_hd.jpg'
+                -->
+                <img src="love.jpg" alt="我们超级甜的合照">
+            </div>
+            <div class="photo-caption">龙相宇 ❤️ 王静雯</div>
+        </div>
+
+        <!-- 龙龙的生日卡片 -->
+        <div class="glass-card p-6 text-center transform hover:scale-[1.02] transition-all relative overflow-hidden nick-border w-full">
+            <div class="absolute -right-6 -top-6 w-20 h-20 bg-orange-300 rounded-full blur-2xl opacity-40"></div>
+            <div class="flex justify-center mb-2">
+                <span class="text-4xl filter drop-shadow-md">🦊</span>
+            </div>
+            <h2 class="text-xl font-bold text-orange-800 mb-1 custom-font-title">龙龙的破壳日</h2>
+            <p class="text-3xl font-mono text-orange-600 font-bold">2002.12.03</p>
+            <p class="text-sm text-gray-700 mt-2 font-bold">"You know you love me." —— 感谢这一天你来到这世界 ✨</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 w-full">
+            <div class="glass-card p-4 flex flex-col items-center judy-border relative">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">📋</span>
+                    <span class="font-bold text-blue-900 text-lg">ZPD 首次建档 (相识)</span>
+                </div>
+                <div class="text-sm text-blue-700/80 mb-1 font-bold">2024年1月10日</div>
+                <div id="timer-met" class="text-xl font-mono text-blue-800 font-bold">计算中...</div>
+            </div>
+
+            <div class="glass-card p-4 flex flex-col items-center border-purple-300">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">🎙️</span>
+                    <span class="font-bold text-purple-900 text-lg">无线电频道接通 (畅聊)</span>
+                </div>
+                <div class="text-sm text-purple-700/80 mb-1 font-bold">2025年4月16日</div>
+                <div id="timer-chat" class="text-xl font-mono text-purple-800 font-bold">计算中...</div>
+            </div>
+
+            <div class="glass-card p-4 flex flex-col items-center border-4 border-pink-300 bg-pink-50/60 relative overflow-hidden">
+                <div class="absolute -left-4 -bottom-4 w-24 h-24 bg-pink-300 rounded-full blur-2xl opacity-40"></div>
+                <div class="flex items-center gap-2 mb-2 z-10">
+                    <span class="text-2xl">🚓</span>
+                    <span class="font-bold text-pink-700 text-xl">最佳拍档官方认证 (相恋)</span>
+                </div>
+                <div class="text-sm text-pink-700/80 mb-1 z-10 font-bold">2025年6月17日</div>
+                <div id="timer-love" class="text-2xl font-mono text-pink-600 font-bold z-10">计算中...</div>
+                <p class="text-sm text-pink-600 mt-2 font-bold z-10">Try Everything! 和你一起探索未来</p>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 mt-4 text-center border-blue-300 relative w-full">
+            <span class="absolute top-2 right-4 text-3xl opacity-60 rotate-12 drop-shadow">🥕</span>
+            <span class="absolute bottom-2 left-4 text-3xl opacity-60 -rotate-12 drop-shadow">🐾</span>
+
+            <h3 class="text-2xl font-bold text-blue-900 mb-2 custom-font-title">🐰 美女宝宝的警局补给箱 🦊</h3>
+            <p class="text-sm text-blue-800 mb-6 bg-blue-100/60 inline-block px-4 py-2 rounded-full font-bold">内含违禁品...啊不对，是生日惊喜！</p>
+            
+            <div id="gift-btn" class="gift-box rounded-3xl w-28 h-28 mx-auto flex items-center justify-center shadow-xl hover:shadow-yellow-400/50 mb-4 relative ring-4 ring-white/60">
+                <div class="text-5xl drop-shadow-md">🎁</div>
+                <span class="absolute -top-2 -right-2 bg-red-500 text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center animate-bounce border-2 border-white" id="gift-count">6</span>
+            </div>
+            
+            <p id="gift-instruction" class="text-base font-bold text-orange-800/90">👇 点击开启今日份案件线索</p>
+        </div>
+
+        <div class="w-full text-center mt-6 px-4">
+            <p class="text-white font-bold text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)] leading-relaxed custom-font-title">
+                🦊“对我来说最重要的就是你💗<br>我最大的幸福就是遇见你”🐰
+            </p>
+        </div>
+
+        <footer class="text-center text-white/90 text-sm py-4 font-bold drop-shadow w-full">
+            <p>From 王静雯 with Love 🐰❤️🦊</p>
+        </footer>
+    </main>
+
+    <div id="modal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="glass-card bg-white/95 w-full max-w-sm p-6 text-center transform transition-all scale-90 opacity-0 relative border-4 border-blue-200" id="modal-content">
+            <div class="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-blue-400 via-purple-400 to-orange-400 rounded-t-xl"></div>
+            
+            <div class="mb-4 flex justify-center -mt-10">
+                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-5xl shadow-lg border-4 border-blue-100" id="modal-icon">🎁</div>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2 custom-font-title" id="modal-title">礼物标题</h3>
+            <div class="text-gray-700 mb-6 text-base leading-relaxed px-2 font-bold" id="modal-desc">礼物描述</div>
+            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-blue-400 to-indigo-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-blue-400/30 transition-all transform hover:-translate-y-1 text-lg">
+                收入证物袋 (领取)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const emojis = ['🥕', '🐾', '🍩', '💙', '🦊', '🐰', '🚓', '✨', '💖'];
+        function createFloatingElement() {
+            const el = document.createElement('div');
+            el.classList.add('floating-element');
+            el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 90 + 5 + 'vw';
+            el.style.animationDuration = Math.random() * 5 + 5 + 's';
+            el.style.fontSize = Math.random() * 20 + 20 + 'px';
+            el.style.transform = `rotate(${Math.random() * 360}deg)`;
+            document.getElementById('background-container').appendChild(el);
+            setTimeout(() => { el.remove(); }, 9000);
+        }
+        setInterval(createFloatingElement, 500);
+
+        function getTimeDifference(startDateStr) {
+            const now = new Date();
+            const start = new Date(startDateStr);
+            let diff = now - start;
+            const isFuture = diff < 0;
+            diff = Math.abs(diff);
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            return { days, hours, minutes, seconds, isFuture };
+        }
+
+        function updateTimers() {
+            const configs = [
+                { id: 'timer-met', date: '2024-01-10T00:00:00' },
+                { id: 'timer-chat', date: '2025-04-16T00:00:00' },
+                { id: 'timer-love', date: '2025-06-17T00:00:00' }
+            ];
+            configs.forEach(cfg => {
+                const el = document.getElementById(cfg.id);
+                const diff = getTimeDifference(cfg.date);
+                let text = diff.isFuture ? 
+                    `倒计时: ${diff.days}天 ${diff.hours}时 ${diff.minutes}分 ${diff.seconds}秒` : 
+                    `${diff.days}天 ${diff.hours}小时 ${diff.minutes}分 ${diff.seconds}秒`;
+                el.innerText = text;
+                if(diff.isFuture) {
+                    el.classList.add('text-gray-500');
+                    el.classList.remove('text-pink-600', 'text-blue-800', 'text-purple-800');
+                } else {
+                    el.classList.remove('text-gray-500');
+                }
+            });
+        }
+        setInterval(updateTimers, 1000);
+        updateTimers();
+
+        const gifts = [
+            { title: "绝密影像·美女档案", icon: "🎬", desc: "ZPD 内部流出的珍贵视频资料！<br>请凭此页面向<b>美女宝宝</b>兑换视频文件~ <br>(PS: 必须夸奖视频主角，这是命令！)", confetti: true },
+            { title: "胡萝卜农场分红", icon: "🧧", desc: "恭喜获得 <span class='text-red-500 font-bold text-2xl'>52.00</span> 元！<br>这是给狡猾狐狸的“罚款”报销。<br>请查收微信转账~", confetti: true },
+            { title: "便衣伪装·限定卫衣", icon: "👕", desc: "恭喜获得帅气卫衣一件！<br>无论是出任务还是约会都很合适。<br>(<b>美女宝宝</b>亲自挑选的款式哦)", confetti: true },
+            { title: "豹警官推荐·甜点", icon: "🍩", desc: "恭喜获得生日蛋糕一个！<br>虽然不是爪爪冰棍，但一样甜。<br>许个愿吧，关于我们的。", confetti: true },
+            { title: "天眼系统·无人机", icon: "🚁", desc: "<b>哇哦！大奖出炉！</b><br>大疆无人机一台！<br>带你去看不一样的动物城，<br>但我会一直在地面守望着你。", confetti: true },
+            { title: "案件回顾·手绘", icon: "🎨", desc: "最后一份礼物。<br>一幅记录了重要节点和回忆的画作。<br>这是属于龙相宇和王静雯的独家记忆。", confetti: true }
+        ];
+
+        let currentGiftIndex = 0;
+        const giftBtn = document.getElementById('gift-btn');
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+        const countBadge = document.getElementById('gift-count');
+
+        giftBtn.addEventListener('click', () => {
+            if (currentGiftIndex >= gifts.length) {
+                openModal({ title: "任务全部完成 ✅", icon: "❤️", desc: "礼物领取完毕！<br>往后余生，请继续和我一起开心，一起生活。<br>生日快乐，我的龙龙。", confetti: false });
+                return;
+            }
+            giftBtn.classList.add('shaking');
+            setTimeout(() => {
+                giftBtn.classList.remove('shaking');
+                showGift(currentGiftIndex);
+                currentGiftIndex++;
+                updateCount();
+            }, 500);
+        });
+
+        function updateCount() {
+            const remaining = gifts.length - currentGiftIndex;
+            if (remaining > 0) { countBadge.innerText = remaining; } 
+            else { countBadge.style.display = 'none'; document.getElementById('gift-instruction').innerText = "礼物已领完，爱你哟！"; }
+        }
+
+        function showGift(index) {
+            const gift = gifts[index];
+            openModal(gift);
+            if (gift.confetti) triggerConfetti();
+        }
+
+        function openModal(data) {
+            document.getElementById('modal-title').innerText = data.title;
+            document.getElementById('modal-icon').innerHTML = data.icon;
+            document.getElementById('modal-desc').innerHTML = data.desc;
+            modal.classList.remove('hidden');
+            setTimeout(() => { modalContent.classList.remove('scale-90', 'opacity-0'); modalContent.classList.add('scale-100', 'opacity-100'); }, 10);
+        }
+
+        function closeModal() {
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-90', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        function triggerConfetti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+            var random = function(min, max) { return Math.random() * (max - min) + min; }
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, colors: ['#ff9a9e', '#a18cd1', '#ffcf00'], origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, colors: ['#66a6ff', '#fa709a', '#ffffff'], origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+    </script>
+</body>
+</html>
